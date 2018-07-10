@@ -1,0 +1,146 @@
+#include <sys/stat.h>
+#include <fcntl.h>
+#include "tester.h"
+
+int main(int argc, char *argv[])
+{
+	int i;
+	int thrNum = 26;
+	resetFiles();
+	int rando;
+	int countW = 0;
+	int countR = 0;
+
+	const char * const letters[] = 
+	{"a","b","c","d","e","f","g","h","i","j","k","l","m",
+	"n","o","p","q","r","s","t","u","v","w","x","y","z"};
+
+	pthread_t *threads = calloc(thrNum, sizeof(threads));
+
+	/* for (i = 0; i < thrNum; i++) */
+	/* { */
+	/* 	rando = rand()%2; */
+	/* 	if(rando == 0){ */
+	/* 		pthread_create(&threads[i], NULL, reader, (void *) letters[countR]); */
+	/* 		countR++; */
+	/* 	} */
+	/* 	else{ */
+	/* 		countW++; */
+	/* 	} */
+	/* } */
+    /*  */
+
+	pthread_create(&threads[0], NULL, reader, (void *) letters[0]);
+	pthread_create(&threads[1], NULL, writer, (void *) letters[1]);
+	/* for (i = 0; i < thrNum; ++i) */
+	/* { */
+	pthread_join(threads[0], NULL);
+	pthread_join(threads[1], NULL);
+	/* } */
+    /*  */
+	//printFile();
+
+	return 0;
+}
+
+void resetFiles(){
+	int i;
+
+	FILE * fp = fopen("main.txt", "w+");
+
+	for (i = 0; i < 10000; ++i)
+	{
+		fputc('a', fp);
+	}
+
+	fsync(fileno(fp));
+    fflush(fp);
+	fclose(fp);
+    sync();
+	printf("resetting\n");
+}
+
+void printFile(){
+	FILE * fp = fopen("main.txt", "r");
+	char c = fgetc(fp);
+
+	putchar(c);
+
+	while (c != EOF){
+		putchar(c);
+		c = fgetc(fp);
+	}
+
+	fclose(fp);
+}
+
+int checkSuccess(char * filename){
+	FILE * fp = fopen(filename, "r");
+
+	int count = 0;
+
+	char c = fgetc(fp);
+	char first = c;
+	while(c != EOF){
+		if(c != first){
+			return 0;
+		}
+		count++;
+		c= fgetc(fp);
+	}
+	return count == 10000;
+}
+
+void *writer(void *argum)
+{
+	int i;
+    int fd;
+	char * c = argum;
+
+	fd = open("main.txt", O_RDWR);
+
+	for (i = 0; i < 10000; i++)
+	{
+		if (i % 1000 == 0) {
+			sleep(1);}
+		write(fd, c, 1);
+	}
+
+
+	close(fd);
+
+	pthread_exit(NULL);
+}
+
+void *reader(void *argum){
+	char out;
+	char * c = argum;
+	int count = 0;
+
+	char filename[15] = "";
+	strcat(filename,"testfile");
+	strcat(filename, c);
+	strcat(filename, ".txt");
+
+	sleep(2);
+	FILE * readFile = fopen("main.txt", "r");
+	FILE * writeFile = fopen(filename, "w");
+
+	out = fgetc(readFile);
+	while (out != EOF){
+		fputc(out, writeFile);
+		out = fgetc(readFile);
+		count++;
+		if(count % 2500 == 0) {
+			printf("sleeping\n");
+			sleep(1);
+		}
+	}
+
+	fclose(readFile);
+	fclose(writeFile);
+
+	printf("%d\n", checkSuccess(filename));
+
+	/* pthread_exit(NULL); */
+}

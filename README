@@ -1,0 +1,77 @@
+-------------------------------------------------------------------------------
+README
+-------------------------------------------------------------------------------
+Jordan McCaskill
+1722645
+CMPT 360 Assignment 3
+------------------------------------------------------------
+tester
+------------------------------------------------------------
+This is the main testing function for the abstraction. It contains two
+files to execute:
+
+tester.c
+tester.h
+
+the following functions are in tester.c:
+
+void resetFiles() - reset testfile
+void printFile() - print testfile
+void makeTester() - make testfiles
+
+When initialized it is tasked with randomly creating several testing
+readers and writers for the program to test execution. It initializes
+all of the main structs and once it has added all of the test operations
+it passes to control to priority, which is the abstraction.
+
+There are many testfiles produced during execution and so they are deleted
+before the program is terminated in order to not clutter the directory.
+
+------------------------------------------------------------
+priority
+------------------------------------------------------------
+priority is the abstraction which contains all of the reader/writer
+scheduling logic. It is made up of two files:
+
+priority.c
+priority.h
+
+It also uses queue to maintain the order of the execution.
+
+the following functions are in priority.c:
+
+void initialize() - intialize structs
+void addReader() - add reader to queue
+void addWriter() - add writer to queue
+int nextItem() - get the next item in priority list
+int process() - process the next item
+void execute() - start execution
+void *writer() - thread loop for writer
+void *reader() - thread loop for reader
+char *getFilename() - filename of next reader/writer
+void checkSuccess() - checks if reading/writing created right testfile
+void destroyPriority() - destroy all structs
+
+When execution is passed, the order of the readers and writers is
+determined and then they are executed in the appropriate order.
+Each task is passed to a thread and then let go to completion. The
+main purpose of this library is to overcome the reader/writer and
+multiple writers problems. The way that this is accomplished is explained
+more in Writeup.pdf. All scheduling is handled by this part of the program
+
+------------------------------------------------------------
+queue
+------------------------------------------------------------
+Queue is included in order to handle the jobs and their ordering. It
+is comprised of:
+
+queue.c
+queue.h
+
+It is a standard linked queue and uses the following functions:
+
+struct item *create_node() - create a new node
+int append() - addends a new node to the queue
+int check() - check the next item in the list
+void pop() - pop an item from the queue
+void destroy() - destroy the queue
